@@ -51,15 +51,21 @@ class VQA(data.Dataset):
             vocab_json = json.load(fd)
         self._check_integrity(questions_json, answers_json)
 
+        #load bert-embeddings
+        if(questions_path.endswith('train2014_questions.json')):
+            self.bert_embeddings = h5py.File('/content/drive/My Drive/Colab Notebooks/qa_path/train_q.h5', 'r')
+        else:
+            self.bert_embeddings = h5py.File('/content/drive/My Drive/Colab Notebooks/qa_path/val_q.h5', 'r')
+
         # vocab
         self.vocab = vocab_json
         self.token_to_index = self.vocab['question']
         self.answer_to_index = self.vocab['answer']
 
         # q and a
-        self.questions = list(prepare_questions(questions_json))
+        self.questions = [ torch.tensor(q, dtype=torch.float32) for q in self.bert_embeddings['data'] ]
         self.answers = list(prepare_answers(answers_json))
-        self.questions = [self._encode_question(q) for q in self.questions]
+        #self.questions = [self._encode_question(q) for q in self.questions]
         self.answers = [self._encode_answers(a) for a in self.answers]
 
         # v
@@ -144,14 +150,14 @@ class VQA(data.Dataset):
             # change of indices to only address answerable questions
             item = self.answerable[item]
 
-        q, q_length = self.questions[item]
+        q = self.questions[item]
         a = self.answers[item]
         image_id = self.coco_ids[item]
         v = self._load_image(image_id)
         # since batches are re-ordered for PackedSequence's, the original question order is lost
         # we return `item` so that the order of (v, q, a) triples can be restored if desired
         # without shuffling in the dataloader, these will be in the order that they appear in the q and a json's.
-        return v, q, a, item, q_length
+        return v, q, a, item
 
     def __len__(self):
         if self.answerable_only:
@@ -218,10 +224,13 @@ class CocoImages(data.Dataset):
     def _find_images(self):
         id_to_filename = {}
         for filename in os.listdir(self.path):
-            if not filename.endswith('.jpg'):
+            if not filename.endswith('.png'):
                 continue
             id_and_extension = filename.split('_')[-1]
-            id = int(id_and_extension.split('.')[0])
+            string_id = id_and_extension.split('.')[0]
+            if(string_id.endswith(")")):
+                continue
+            id = int(string_id)
             id_to_filename[id] = filename
         return id_to_filename
 

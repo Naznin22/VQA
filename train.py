@@ -42,7 +42,7 @@ def run(net, loader, optimizer, tracker, train=False, prefix='', epoch=0):
     acc_tracker = tracker.track('{}_acc'.format(prefix), tracker_class(**tracker_params))
 
     log_softmax = nn.LogSoftmax().cuda()
-    for v, q, a, idx, q_len in tq:
+    for v, q, a, idx in tq:
         var_params = {
             'volatile': not train,
             'requires_grad': False,
@@ -50,9 +50,9 @@ def run(net, loader, optimizer, tracker, train=False, prefix='', epoch=0):
         v = Variable(v.cuda(async=True), **var_params)
         q = Variable(q.cuda(async=True), **var_params)
         a = Variable(a.cuda(async=True), **var_params)
-        q_len = Variable(q_len.cuda(async=True), **var_params)
+        #q_length = Variable(q_length.cuda(async=True), **var_params)
 
-        out = net(v, q, q_len)
+        out = net(v, q)
         nll = -log_softmax(out)
         loss = (nll * a / 10).sum(dim=1).mean()
         acc = utils.batch_accuracy(out.data, a.data).cpu()
@@ -73,7 +73,7 @@ def run(net, loader, optimizer, tracker, train=False, prefix='', epoch=0):
             accs.append(acc.view(-1))
             idxs.append(idx.view(-1).clone())
 
-        loss_tracker.append(loss.data[0])
+        loss_tracker.append(loss.data)
         # acc_tracker.append(acc.mean())
         for a in acc:
             acc_tracker.append(a.item())
@@ -123,7 +123,7 @@ def main():
             },
             'vocab': train_loader.dataset.vocab,
         }
-        torch.save(results, target_name)
+        #torch.save(results, target_name)
 
 
 if __name__ == '__main__':
