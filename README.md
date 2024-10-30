@@ -28,6 +28,5 @@ Figure 8.1: Graph of training (red) and validation (blue) accuracy for VQA-Abstr
 Figure 8.3: Graph of training (red) and validation (blue) accuracy for VQA-Real
 
 ## Results
-In this work, we used BERT to extract sentence embeddings for VQA questions and tested a baseline model to evaluate BERT’s performance in VQA. Our results on VQA-Abstract achieved an accuracy of 61.3%, while VQA-Real reached 57.35%. We compared our baseline model to various other baselines and full VQA models.
+Our results on VQA-Abstract achieved an accuracy of 61.3%, while VQA-Real reached 57.35%. We compared our baseline model to various other baselines and full VQA models. BERT sentence embeddings are indeed beneficial in the context of VQA, and further research utilizing BERT as the question embedding layer should be pursued. Further implementation and result details can be found in this [file](https://github.com/Naznin22/VQA/blob/main/Final%20Report_edited.pdf).
 
-In conclusion, BERT sentence embeddings are indeed beneficial in the context of VQA, and further research utilizing BERT as the question embedding layer should be pursued.
