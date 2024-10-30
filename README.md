@@ -1,62 +1,33 @@
-# Strong baseline for visual question answering
+# Visual Question Answering with BERT
+This project is a reimplementation of a strong baseline model for Visual Question Answering (VQA), based on the work of [Cyanogenoid](https://github.com/Cyanogenoid/pytorch-vqa/), who also reimplemented Vahid Kazemi and Ali Elqursh's paper, [Show, Ask, Attend, and Answer: A Strong Baseline for Visual Question Answering](https://arxiv.org/abs/1704.03162).
 
-This is a re-implementation of Vahid Kazemi and Ali Elqursh's paper [Show, Ask, Attend, and Answer: A Strong Baseline For Visual Question Answering][0] in [PyTorch][1].
+## Overview
+The main goal of our work was to explore the performance of BERT in the context of VQA. BERT utilizes Transformers, an attention mechanism that learns contextual relationships between words (or sub-words) in a text.
 
-The paper shows that with a relatively simple model, using only common building blocks in Deep Learning, you can get better accuracies than the majority of previously published work on the popular [VQA v1][2] dataset.
+The figure below illustrates the overall structure of our model:
 
-This repository is intended to provide a straightforward implementation of the paper for other researchers to build on.
-The results closely match the reported results, as the majority of details should be exactly the same as the paper. (Thanks to the authors for answering my questions about some details!)
-This implementation seems to consistently converge to about 0.1% better results –
-there are two main implementation differences:
+<br>
 
-- Instead of setting a limit on the maximum number of words per question and cutting off all words beyond this limit, this code uses per-example dynamic unrolling of the language model.
-- [An issue with the official evaluation code](https://github.com/Cyanogenoid/pytorch-vqa/issues/5) makes some questions unanswerable. This code does not normalize machine-given answers, which avoids this problem. As the vast majority of questions are not affected by this issue, it's very unlikely that this will have any significant impact on accuracy.
+![image](https://github.com/user-attachments/assets/6c03c1f1-cea9-46e4-a9b9-6f3d81e85f5c)
 
-A fully trained model (convergence shown below) is [available for download][5].
+In the original model, the question 𝑞 is tokenized into a set of n tokens using a simple embedding layer. These tokens are then fed into an LSTM layer, and the final state of the LSTM is used to represent the question. In our implementation, we use pre-trained BERT to extract sentence embeddings for each question.
 
-![Graph of convergence of implementation versus paper results](http://i.imgur.com/moWYEm8.png)
+We utilized the "base" and "uncased" versions of BERT. The "base" version is smaller than the "large" version, making it more suitable for our limited resources. The "uncased" version ignores casing, which is not significant for our task.
 
-Note that the model in [my other VQA repo](https://github.com/Cyanogenoid/vqa-counting) performs better than the model implemented here.
+We compared our performance on VQA-real with the baselines proposed in the original paper:
 
+![image](https://github.com/user-attachments/assets/501386aa-5677-44d9-8be5-2e3801005d96)
 
-## Running the model
+Figure 8.1: Graph of training (red) and validation (blue) accuracy for VQA-Abstract
 
-- Clone this repository with:
-```
-git clone https://github.com/Cyanogenoid/pytorch-vqa --recursive
-```
-- Set the paths to your downloaded [questions, answers, and MS COCO images][4] in `config.py`.
-  - `qa_path` should contain the files `OpenEnded_mscoco_train2014_questions.json`, `OpenEnded_mscoco_val2014_questions.json`, `mscoco_train2014_annotations.json`, `mscoco_val2014_annotations.json`.
-  - `train_path`, `val_path`, `test_path` should contain the train, validation, and test `.jpg` images respectively.
-- Pre-process images (93 GiB of free disk space required for f16 accuracy) with [ResNet152 weights ported from Caffe][3] and vocabularies for questions and answers with:
-```
-python preprocess-images.py
-python preprocess-vocab.py
-```
-- Train the model in `model.py` with:
-```
-python train.py
-```
-This will alternate between one epoch of training on the train split and one epoch of validation on the validation split while printing the current training progress to stdout and saving logs in the `logs` directory.
-The logs contain the name of the model, training statistics, contents of `config.py`,  model weights, evaluation information (per-question answer and accuracy), and question and answer vocabularies.
-- During training (which takes a while), plot the training progress with:
-```
-python view-log.py <path to .pth log>
-```
+<br>
+<br>
 
+![image](https://github.com/user-attachments/assets/8d4fb427-5a63-455b-b13e-a4e3d2fd5622)
 
-## Python 3 dependencies (tested on Python 3.6.2)
+Figure 8.3: Graph of training (red) and validation (blue) accuracy for VQA-Real
 
-- torch
-- torchvision
-- h5py
-- tqdm
+## Results
+In this work, we used BERT to extract sentence embeddings for VQA questions and tested a baseline model to evaluate BERT’s performance in VQA. Our results on VQA-Abstract achieved an accuracy of 61.3%, while VQA-Real reached 57.35%. We compared our baseline model to various other baselines and full VQA models.
 
-
-
-[0]: https://arxiv.org/abs/1704.03162
-[1]: https://github.com/pytorch/pytorch
-[2]: http://visualqa.org/
-[3]: https://github.com/ruotianluo/pytorch-resnet
-[4]: http://visualqa.org/vqa_v1_download.html
-[5]: https://github.com/Cyanogenoid/pytorch-vqa/releases
+In conclusion, BERT sentence embeddings are indeed beneficial in the context of VQA, and further research utilizing BERT as the question embedding layer should be pursued.
